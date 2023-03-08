@@ -99,7 +99,7 @@ colnames(df) <- c(
   "father_job", "family_educational_support",
   "paid", "activities", "internet",
   "secondary_education_percentage",
-  "board_of_education",
+  "secondary_board_of_education",
   "higher_secondary_education_percentage",
   "higher_board_of_education",
   "higher_secondary_education_specialization",
@@ -797,30 +797,340 @@ labs(
 
 # Analysis 2-2: Does place of living impacts on placement and salary?
 
-# Analysis 2-3: Does gender affects placement and salary
+# Graph 2-2-1 Student status of placement relation to address
+df221 <- df
+ggplot(
+  df211,
+  aes(
+    x = age
+  )
+) +
+geom_density(
+  aes(
+    fill = status_of_placement
+  ),
+  alpha = 0.7
+) +
+labs(
+  x = "Age",
+  y = "Count",
+  title = "Distribution of Students age for successful placement"
+) +
+theme_gray()
+
+# Graph 2-2-2 Student age against salary
+df212 <- df  %>%
+          filter(df$status_of_placement == "Placed") %>%
+          tally()
+ggplot(
+  df212,
+  aes(
+    x = age,
+    y = salary
+  )
+) +
+geom_bin2d(bins = 10) +
+scale_fill_continuous(type = "viridis") +
+theme_gray() +
+labs(
+  x = "Age",
+  y = "Salary",
+  title = "Distribution of Age and Salary"
+)
+
+# Analysis 2-3: Does gender affects placement and salary?
+
+# Graph 2-3-1 Placed student relation to gender
+df_graph231 <- df  %>%
+                filter(df$status_of_placement == "Placed") %>%
+                group_by(gender) %>%
+                tally()
+
+df_graph231$fraction <- df_graph231$n / sum(df_graph231$n)
+df_graph231$ymax <- cumsum(df_graph231$fraction)
+df_graph231$ymin <- c(0, head(df_graph231$ymax, n = -1))
+df_graph231$labelPosition <- (df_graph231$ymax + df_graph231$ymin) / 2
+df_graph231$label <- paste0(
+  df_graph231$gender,
+  "\n value: ",
+  df_graph231$n
+)
+df_graph231
+ggplot(
+  df_graph231,
+  aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = gender
+  )
+) +
+geom_rect() +
+geom_label(
+  x = 3.5,
+  aes(
+    y = labelPosition,
+    label = label
+  ),
+  size = 6
+) +
+scale_fill_brewer(
+  palette = 4
+) +
+coord_polar(
+  theta = "y"
+) +
+xlim(
+  c(2, 4)
+) +
+theme_void() +
+theme(legend.position = "none") +
+labs(
+  title = "Placed student grouped by father's job"
+)
+
+# Graph 2-3-2 Student gender relation to salary
 ggplot(
   df,
   aes(
+    y = salary,
     x = gender,
-    fill = status_of_placement
+    color = gender
+  )
+) +
+geom_boxplot(varwidth = T)  +
+labs(
+  x = "Gender",
+  y = "Salary",
+  title = "Distribution of Salary by gender"
+) +
+theme_gray()
+
+# Analysis 2-4: Does address affects placement and salary?
+
+# Graph 2-4-1 Address on placement
+df251 <- df  %>%
+          filter(df$status_of_placement == "Placed") %>%
+          group_by(address) %>%
+          tally()
+ggplot(
+  df251,
+  aes(
+    x = "",
+    y = n,
+    fill = address
   )
 ) +
 geom_bar(
-  aes(
-    fill = status_of_placement
-  )
+  width = 1,
+  stat = "identity"
+) +
+coord_polar(
+  theta = "y",
+  start = 0
+) +
+scale_fill_brewer(
+  palette = "Blues"
 ) +
 labs(
-  title = "Stacked bar plot on gender by status of placement",
-  x = "Gender",
-  y = "Total student",
-  fill = "Status of placement"
-)
-df %>% ggplot(aes(x = workex)) +  geom_bar(aes(fill = status))
-## Question 3: How does personal educational achievement affects placement?
+  fill = "Address",
+  x = NULL,
+  y = NULL,
+  title = "Total placed student with address"
+) +
+geom_text(
+  aes(
+    label = n
+  ),
+  size = 8,
+  position = position_stack(vjust = 0.5)
+) +
+theme_void()
 
-# Analysis 3-1: Educational achievement progression on placement
-# Graph 3-1-1 
+# Graph 2-4-2 Address on salary
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = address,
+    y = salary,
+    fill = address
+  )
+) +
+geom_violin() +
+geom_jitter(
+  shape = 16,
+  position = position_jitter(0.2)
+) +
+labs(
+  x = "Address",
+  y = "Salary",
+  title = "Distribution of Salary by address"
+) +
+theme_gray()
+
+# Analysis 2-5: Does internet affects placement and salary?
+
+# Graph 2-5-1 internet on placement
+df_graph261 <- df %>%
+                group_by(internet) %>%
+                tally()
+ggplot(
+  df_graph114,
+  aes(
+    area = n,
+    fill = father_job,
+    label = n
+  )
+) +
+geom_treemap() +
+geom_treemap_text(
+  colour = "white",
+  place = "centre",
+  size = 15
+) +
+labs(
+  fill = "Father's job",
+  title = "Total students grouped by Father's Job"
+)
+
+# Graph 2-5-2 Address on salary
+ggplot(
+  df,
+  aes(
+    factor(family_educational_support),
+    salary
+  )
+) +
+geom_boxplot(
+  aes(
+    fill = factor(family_educational_support)
+  )
+) +
+geom_dotplot(
+  binaxis = "y",
+  stackdir = "center",
+  dotsize = .5,
+  fill = "red"
+) +
+labs(
+  x = "Family Educational Support",
+  y = "Salary",
+  fill = "Family Educational Support",
+  title = "Distribution of Salary by family educational support"
+) +
+theme_gray()
+
+## Question 3: How does personal educational achievement affects placement and salary?
+
+# Analysis 3-1: Educational achievement progression on placement and salary
+
+# Graph 3-1-1: Degree to master with placement
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = degree_percentage,
+    y = post_grad_mba_percentage
+  )
+) +
+scale_fill_gradient(
+  low = "blue",
+  high = "green",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Degree Marks",
+  y = "Master Marks",
+  fill = "Status of Placement",
+  title = "Degree to Master Progression on Placement Status"
+)
+
+# Graph 3-1-2: Higher secondary to degree with placement and placed student
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = higher_secondary_education_percentage,
+    y = degree_percentage
+  )
+) +
+scale_fill_gradient(
+  low = "yellow",
+  high = "red",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Higher Secondary Education Grade",
+  y = "Degree Percentage",
+  title = "Distribution of Higher Secondary and Degree"
+)
+
+# Graph 3-1-3: seconday to higher secondary with placement and placed student
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = secondary_education_percentage,
+    y = higher_secondary_education_percentage
+  )
+) +
+scale_fill_gradient(
+  low = "orange",
+  high = "purple",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Secondary Education Grade",
+  y = "Higher Secondary Education Grade",
+  title = "Distribution of Secondary and Higher Secondary"
+)
+
+# Graph 3-1-4: master grades vs salary
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = post_grad_mba_percentage,
+    y = salary
+  )
+) +
+scale_fill_gradient(
+  low = "cyan",
+  high = "red",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Post Graduation MBA Grade",
+  y = "Salary",
+  title = "Distribution of Salary by MBA Grade"
+)
+
+# Analysis 3-1-5: master grade on placement
+ggplot(
+  df,
+  aes(
+     post_grad_mba_percentage
+  )
+) +
+geom_histogram(
+  aes(
+    fill = status_of_placement
+  ), bins = 10
+) +
+labs(
+  title = "Histogram of MBA Grade against status of placement",
+  x = " Post graduate MBA Percentage",
+  y = "Number of students"
+) +
+geom_freqpoly(
+  aes(color = status_of_placement),
+  binwidth = 5, size = 1, alpha = 0.8
+)
 
 # Analysis 3-2: Educational specialization on placement
 ggplot(
@@ -871,9 +1181,30 @@ ggplot(
   ) +
   coord_polar(theta = "y", start = 0)
 
-# Analysis 3-3: Does undergraduate educational degree type affects on job placement? # nolint: line_length_linter.
+# Graph 3-2-3 Salary by master specialization
+ggplot(
+  df,
+  aes(
+    x = salary
+  )
+) +
+geom_histogram(
+  binwidth = 100000,
+  aes(
+    fill = specialization
+  )
+) +
+labs(
+  x = "Salary",
+  y = "Count",
+  title = "Distribution of Salaries for Specialization"
+) +
+facet_grid(specialization ~ .) +
+theme_gray()
 
-# Graph 3-3-1 Success placement grouped by degree type
+# Analysis 3-3: Does undergraduate educational degree type affects on placement? # nolint: line_length_linter.
+
+# Graph 3-3-1 Success placement grouped by specialization
 ggplot(
   df %>% filter(df$status_of_placement == "Placed"),
   aes(x = "", fill = factor(specialization))
@@ -888,45 +1219,408 @@ labs(
 ) +
 coord_polar(theta = "y", start = 0)
 
-ggplot(university, aes(x=quality_of_education, y=score)) + 
-  geom_point(aes(color=country,size=citations)) + 
-  labs(x="Quality Of Education", 
-       y="Score",
-       title="Quality of Education Vs Score against Country & Citations")+ 
-        theme_linedraw()+
-       theme(plot.title = element_text(size=22),axis.text.x= element_text(size=15),
-                            axis.text.y= element_text(size=15), axis.title=element_text(size=18))
+# Graph 3-3-2 Degree Type on salary
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = specialization,
+    y = salary,
+    fill = specialization
+  )
+) +
+geom_violin() +
+geom_jitter(
+  shape = 16,
+  position = position_jitter(0.2)
+) +
+labs(
+  x = "Specialization",
+  y = "Salary",
+  title = "Distribution of Salary by specialization"
+) +
+theme_gray()
+
+# Graph 3-3-3 Degree Type on success placement
+df_graph333 <- df  %>%
+                filter(df$status_of_placement == "Placed") %>%
+                group_by(degree_type) %>%
+                tally()
+
+df_graph333$fraction <- df_graph333$n / sum(df_graph333$n)
+df_graph333$ymax <- cumsum(df_graph333$fraction)
+df_graph333$ymin <- c(0, head(df_graph333$ymax, n = -1))
+df_graph333$labelPosition <- (df_graph333$ymax + df_graph333$ymin) / 2
+df_graph333$label <- paste0(
+  df_graph333$degree_type,
+  "\n value: ",
+  df_graph333$n
+)
+df_graph333
+ggplot(
+  df_graph333,
+  aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = degree_type
+  )
+) +
+geom_rect() +
+geom_label(
+  x = 3.5,
+  aes(
+    y = labelPosition,
+    label = label
+  ),
+  size = 6
+) +
+scale_fill_brewer(
+  palette = 4
+) +
+coord_polar(
+  theta = "y"
+) +
+xlim(
+  c(2, 4)
+) +
+theme_void() +
+theme(legend.position = "none") +
+labs(
+  title = "Placed student grouped by undergraduate degree type"
+)
 
 
-# Analysis 3-4: Educational degree type on job placement
+# Graph 3-3-4 Salaries grouped by degree type
+ggplot(
+  df,
+  aes(
+    x = degree_type,
+    y = salary
+  )
+) +
+geom_point(
+  aes(
+    color = degree_type
+  )
+) +
+labs(
+  x = "Under graduate degree type",
+  y = "Score",
+  title = "Quality of Education Vs Score against Country & Citations"
+) +
+theme_gray()
 
-# Graph 3-3-1 Success placement grouped by degree type
+# Analysis 3-4: Educational Area during high school on job placement and salary
+
+# Graph 3-4-1 Placed students grouped by educational area during high school
+df_graph341 <- df %>%
+                filter(df$status_of_placement == "Placed")
+ggplot(
+  df_graph341,
+  aes(
+    x = secondary_board_of_education,
+    y = higher_board_of_education
+  )
+) +
+scale_fill_gradient(
+  low = "#5500ff",
+  high = "#2c2b2b",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Secondary board of education",
+  y = "Higher secondary board of education",
+  title = "Correlation on secondary school board of education"
+)
+
+# Graph 3-4-2 Salaries grouped by educational area during higher secondary
+ggplot(
+  df,
+  aes(
+    y = salary,
+    fill = higher_board_of_education
+  )
+) +
+geom_boxplot(varwidth = T)  +
+labs(
+  x = "",
+  y = "Salary",
+  title = "Distribution of Salary by higher secondary board of education"
+) +
+theme_gray()
 
 
+# Analysis 3-5: Activities ecxtra class on job placement and salary
 
-## Question 4: How does work-related factors affects job placement
+# Graph 3-5-1 Placement grouped by extra curricular
+df_graph351 <- df  %>%
+                filter(df$status_of_placement == "Placed") %>%
+                group_by(activities) %>%
+                tally()
+
+df_graph351$fraction <- df_graph351$n / sum(df_graph351$n)
+df_graph351$ymax <- cumsum(df_graph351$fraction)
+df_graph351$ymin <- c(0, head(df_graph351$ymax, n = -1))
+df_graph351$labelPosition <- (df_graph351$ymax + df_graph351$ymin) / 2
+df_graph351$label <- paste0(
+  df_graph351$activities,
+  "\n value: ",
+  df_graph351$n
+)
+
+ggplot(
+  df_graph351,
+  aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = activities
+  )
+) +
+geom_rect() +
+geom_label(
+  x = 3.5,
+  aes(
+    y = labelPosition,
+    label = label
+  ),
+  size = 6
+) +
+scale_fill_brewer(
+  palette = 4
+) +
+coord_polar(
+  theta = "y"
+) +
+xlim(
+  c(2, 4)
+) +
+theme_void() +
+theme(legend.position = "none") +
+labs(
+  title = "Placed student grouped by extra curricular activities"
+)
+
+
+# Graph 3-5-2 Salaries grouped by extra curricular
+ggplot(
+  df,
+  aes(
+    y = salary,
+    fill = activities
+  )
+) +
+geom_boxplot(varwidth = T)  +
+labs(
+  x = "",
+  y = "Salary",
+  title = "Distribution of Salary by extra curricular activities involvement"
+) +
+theme_gray()
+
+# Analysis 3-6: Extra classes on job placement
+
+# Graph 3-6-1 Placement grouped by extra classes
+ggplot(
+  data = df,
+  aes(x = paid, y = status_of_placement, fill = status_of_placement)
+) +
+theme_gray() +
+geom_bar(
+  stat = "identity",
+  position = position_dodge()
+) +
+labs(
+  x = "Registered for extra classes",
+  y = "Status of Placement",
+  title = "Overview Status of Placement by paid extra classes"
+)
+
+# Graph 3-6-2 Salaries grouped by extra classes
+df362 <- df  %>%
+          filter(df$status_of_placement == "Placed")
+ggplot(
+  df362,
+  aes(
+    x = paid,
+    y = salary,
+    fill = paid
+  )
+) +
+geom_violin() +
+labs(
+  x = "Registered extra classes",
+  y = "Salary",
+  title = "Distribution of  Salary compared by extra classes involvement"
+) +
+theme_gray()
+
+## Question 4: How does work-related factors affects job placement and salary
 
 # Analysis 4-1: Does previous working experience helps in landing a job?
 
+# Graph 4-1-1 Work experience on placement
+ggplot(
+  df,
+  aes(
+    x = work_experience
+  )
+) +
+geom_bar(
+  aes(
+    fill = status_of_placement
+  )
+) +
+labs(
+  title = "Stacked bar plot on work experience by status of placement",
+  x = "Work Experience",
+  y = "Total student",
+  fill = "Status of placement"
+)
 
-# Analysis 4-2: Does employability test score affects job placement?
+# Graph 4-1-2 Work experience on salary
+ggplot(
+  df %>% filter(df$status_of_placement == "Placed"),
+  aes(
+    x = work_experience,
+    y = salary,
+    fill = work_experience
+  )
+) +
+geom_violin() +
+geom_jitter(
+  shape = 16,
+  position = position_jitter(0.2)
+) +
+labs(
+  x = "Working experience",
+  y = "Salary",
+  title = "Distribution of Salary by working experience"
+) +
+theme_gray()
+
+# Analysis 4-2: Does employability test score affects placement and salary?
+
+# Graph 4-2-1 Employability test against placement
+df_graph421 <- df  %>%
+                filter(df$status_of_placement == "Placed") %>%
+                group_by(father_job) %>%
+                tally()
+
+df_graph115$fraction <- df_graph115$n / sum(df_graph115$n)
+df_graph115$ymax <- cumsum(df_graph115$fraction)
+df_graph115$ymin <- c(0, head(df_graph115$ymax, n = -1))
+df_graph115$labelPosition <- (df_graph115$ymax + df_graph115$ymin) / 2
+df_graph115$label <- paste0(
+  df_graph115$father_job,
+  "\n value: ",
+  df_graph115$n
+)
+
+ggplot(
+  df_graph115,
+  aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = father_job
+  )
+) +
+geom_rect() +
+geom_label(
+  x = 3.5,
+  aes(
+    y = labelPosition,
+    label = label
+  ),
+  size = 6
+) +
+scale_fill_brewer(
+  palette = 4
+) +
+coord_polar(
+  theta = "y"
+) +
+xlim(
+  c(2, 4)
+) +
+theme_void() +
+theme(legend.position = "none") +
+labs(
+  title = "Placed student grouped by father's job"
+)
 
 
-## Question 5: Does current studies affect job placement
+# Graph 4-2-2 Employability test against salary
+ggplot(
+  df,
+  aes(
+    employability_test_percentage,
+    salary
+  )
+) +
+geom_count(
+  col = "tomato3",
+  show.legend = TRUE
+) +
+labs(
+  x = "Employability Test Score",
+  y = "Salary",
+  title = "Distribution of Salary and employability test score"
+) +
+theme_gray()
 
-# Analysis 5-1: Does current post-graduate specialization affects job placement?
+## Extra Feature 1: Parents' occupation
+
+# Analysis E1-1: Mother's occupation X Father's occupation
+ggplot(
+  df,
+  aes(
+    x = mother_job,
+    y = father_job
+  )
+) +
+scale_fill_gradient(
+  low = "pink",
+  high = "black",
+  na.value = NA
+) +
+geom_bin2d(bins = 10) +
+theme_gray() +
+labs(
+  x = "Mother's job",
+  y = "Father's job",
+  title = "Correlation on parents' occupation"
+)
 
 
-# Analysis 5-2: Does the result of the Post Graduation (MBA) benefits in job placement? # nolint: line_length_linter.
 
-## Extra Feature 1: Salary Insights from specialization
+## Extra Feature 2: Transition of courses
 
-# Analysis E1-1: Distribution of Salary in mareketing financial specialization
-# Analysis E1-2: Distribution of Salary in marketing human resource specialization # nolint: line_length_linter.
+# Analysis E2-1: Transition of courses: higher -> degree
+as_tibble(df) %>%
+arrange(
+  higher_secondary_education_specialization,
+  degree_type
+) %>%
+group_by(
+  higher_secondary_education_specialization,
+  degree_type
+) %>%
+summarise(
+  num_pairs = n(), .groups = "drop"
+) %>%
+pivot_wider(
+  names_from = degree_type,
+  values_from = num_pairs
+)
 
-## Extra Feature 2: Transition of courses relating to Job Placement
-
-# Analysis E2-1: Transition of courses: undergraduate -> graduate
+# Analysis E2-2: Transition of courses: degree -> post-grad
 as_tibble(df) %>%
 arrange(
   degree_type, specialization
@@ -941,5 +1635,3 @@ pivot_wider(
   names_from = specialization,
   values_from = num_pairs
 )
-
-# Analysis E4-2

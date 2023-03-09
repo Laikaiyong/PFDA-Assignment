@@ -180,7 +180,6 @@ df <- subset(
 
 # Remove serial number column that is not useful for analysis
 df$serial_number <- NULL
-View(df)
 
 # Defaultize behaviour of mutate values
 df$father_education <- df$father_education
@@ -197,7 +196,7 @@ drop_columns <- c(
 df <- df[, !(names(df) %in% drop_columns)]
 
 options(scipen = 999)
-
+View(df)
 
 ## Data Visualization
 ## Question 1: How does family background affects placement and salary?
@@ -777,51 +776,7 @@ theme_gray()
 
 # Graph 2-1-2 Student status of placement relation to salary
 df212 <- df  %>%
-          filter(df$status_of_placement == "Placed") %>%
-          tally()
-ggplot(
-  df212,
-  aes(
-    x = age,
-    y = salary
-  )
-) +
-geom_bin2d(bins = 10) +
-scale_fill_continuous(type = "viridis") +
-theme_gray() +
-labs(
-  x = "Age",
-  y = "Salary",
-  title = "Distribution of Age and Salary"
-)
-
-# Analysis 2-2: Does place of living impacts on placement and salary?
-
-# Graph 2-2-1 Student status of placement relation to address
-df221 <- df
-ggplot(
-  df211,
-  aes(
-    x = age
-  )
-) +
-geom_density(
-  aes(
-    fill = status_of_placement
-  ),
-  alpha = 0.7
-) +
-labs(
-  x = "Age",
-  y = "Count",
-  title = "Distribution of Students age for successful placement"
-) +
-theme_gray()
-
-# Graph 2-2-2 Student age against salary
-df212 <- df  %>%
-          filter(df$status_of_placement == "Placed") %>%
-          tally()
+          filter(df$status_of_placement == "Placed")
 ggplot(
   df212,
   aes(
@@ -887,7 +842,7 @@ xlim(
 theme_void() +
 theme(legend.position = "none") +
 labs(
-  title = "Placed student grouped by father's job"
+  title = "Placed student grouped by gender"
 )
 
 # Graph 2-3-2 Student gender relation to salary
@@ -972,14 +927,14 @@ theme_gray()
 # Analysis 2-5: Does internet affects placement and salary?
 
 # Graph 2-5-1 internet on placement
-df_graph261 <- df %>%
+df_graph251 <- df %>%
                 group_by(internet) %>%
                 tally()
 ggplot(
-  df_graph114,
+  df_graph251,
   aes(
     area = n,
-    fill = father_job,
+    fill = internet,
     label = n
   )
 ) +
@@ -990,21 +945,21 @@ geom_treemap_text(
   size = 15
 ) +
 labs(
-  fill = "Father's job",
-  title = "Total students grouped by Father's Job"
+  fill = "Internet",
+  title = "Total students grouped by Internet accessibility"
 )
 
 # Graph 2-5-2 Address on salary
 ggplot(
   df,
   aes(
-    factor(family_educational_support),
+    factor(internet),
     salary
   )
 ) +
 geom_boxplot(
   aes(
-    fill = factor(family_educational_support)
+    fill = factor(internet)
   )
 ) +
 geom_dotplot(
@@ -1014,10 +969,10 @@ geom_dotplot(
   fill = "red"
 ) +
 labs(
-  x = "Family Educational Support",
+  x = "Internet Accessibility",
   y = "Salary",
-  fill = "Family Educational Support",
-  title = "Distribution of Salary by family educational support"
+  fill = "Internet Accessibility",
+  title = "Distribution of Salary by Internet Accessibility"
 ) +
 theme_gray()
 
@@ -1506,55 +1461,25 @@ theme_gray()
 # Analysis 4-2: Does employability test score affects placement and salary?
 
 # Graph 4-2-1 Employability test against placement
-df_graph421 <- df  %>%
-                filter(df$status_of_placement == "Placed") %>%
-                group_by(father_job) %>%
-                tally()
-
-df_graph115$fraction <- df_graph115$n / sum(df_graph115$n)
-df_graph115$ymax <- cumsum(df_graph115$fraction)
-df_graph115$ymin <- c(0, head(df_graph115$ymax, n = -1))
-df_graph115$labelPosition <- (df_graph115$ymax + df_graph115$ymin) / 2
-df_graph115$label <- paste0(
-  df_graph115$father_job,
-  "\n value: ",
-  df_graph115$n
-)
-
 ggplot(
-  df_graph115,
+  df %>% filter(df$status_of_placement == "Placed"),
   aes(
-    ymax = ymax,
-    ymin = ymin,
-    xmax = 4,
-    xmin = 3,
-    fill = father_job
+    x = status_of_placement,
+    y = employability_test_percentage,
+    fill = status_of_placement
   )
 ) +
-geom_rect() +
-geom_label(
-  x = 3.5,
-  aes(
-    y = labelPosition,
-    label = label
-  ),
-  size = 6
+geom_violin() +
+geom_jitter(
+  shape = 16,
+  position = position_jitter(0.2)
 ) +
-scale_fill_brewer(
-  palette = 4
-) +
-coord_polar(
-  theta = "y"
-) +
-xlim(
-  c(2, 4)
-) +
-theme_void() +
-theme(legend.position = "none") +
 labs(
-  title = "Placed student grouped by father's job"
-)
-
+  x = "Status of placement",
+  y = "Employability test score",
+  title = "Distribution of Employability test score by status of placement"
+) +
+theme_gray()
 
 # Graph 4-2-2 Employability test against salary
 ggplot(
